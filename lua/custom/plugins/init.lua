@@ -177,4 +177,23 @@ return {
   },
 
   { 'joeveiga/ng.nvim' },
+  {
+    'nvim-java/nvim-java',
+    config = function()
+      require('java').setup()
+      vim.lsp.config('jdtls', {
+        settings = {
+          java = {
+            home = os.getenv 'JAVA_HOME',
+            jdt = {
+              ls = {
+                lombokSupport = true,
+              },
+            },
+          },
+        },
+      })
+      vim.lsp.enable 'jdtls'
+    end,
+  },
 }

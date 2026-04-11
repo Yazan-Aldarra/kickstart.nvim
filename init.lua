@@ -616,7 +616,18 @@ require('lazy').setup({
         dockerls = {},
         yamlls = {},
         angularls = {}, -- Angular LSP
-        jdtls = {},
+        -- jdtls = {
+        --   settings = {
+        --     java = {
+        --       home = os.getenv 'JAVA_HOME',
+        --       jdt = {
+        --         ls = {
+        --           lombokSupport = true,
+        --         },
+        --       },
+        --     },
+        --   },
+        -- },
         autohotkey_lsp = {},
 
         stylua = {}, -- Used to format Lua code
@@ -1003,35 +1014,6 @@ require('lazy').setup({
 
 vim.api.nvim_create_user_command('OpencodeModels', function() require('custom.opencode_cost').list() end, {})
 require 'custom.keymaps'
-
--- spell checker
--- vim.opt.spell = true -- Enable spell checking
--- vim.opt.spelllang = { 'en_us' } -- Set the language (you can add more, e.g., 'en_gb')
--- vim.opt.spelloptions:append 'camel' -- Checks parts of words in camelCase identifiers
---
--- local last_leftcol = 0
--- local last_lnum = 0
---
--- vim.api.nvim_create_autocmd('CursorMoved', {
---   callback = function()
---     local pos = vim.api.nvim_win_get_cursor(0)
---     local lnum = pos[1]
---
---     -- Only act on line change (not horizontal moves)
---     if lnum == last_lnum then return end
---     last_lnum = lnum
---
---     local line = vim.api.nvim_get_current_line()
---
---     if line:match '%S' then
---       last_leftcol = vim.fn.winsaveview().leftcol
---     else
---       local view = vim.fn.winsaveview()
---       view.leftcol = last_leftcol
---       vim.fn.winrestview(view)
---     end
---   end,
--- })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
