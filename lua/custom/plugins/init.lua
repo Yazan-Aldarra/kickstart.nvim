@@ -177,7 +177,4 @@ return {
   },
 
   { 'joeveiga/ng.nvim' },
-  -- {
-  --   'Everduin94/nvim-quick-switcher',
-  -- },
 }
