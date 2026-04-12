@@ -177,23 +177,35 @@ return {
   },
 
   { 'joeveiga/ng.nvim' },
+
   {
     'nvim-java/nvim-java',
     config = function()
       require('java').setup()
-      vim.lsp.config('jdtls', {
-        settings = {
-          java = {
-            home = os.getenv 'JAVA_HOME',
-            jdt = {
-              ls = {
-                lombokSupport = true,
-              },
-            },
-          },
-        },
-      })
       vim.lsp.enable 'jdtls'
+    end,
+  },
+  {
+    'rcasia/neotest-java',
+    ft = 'java',
+    dependencies = {
+      'mfussenegger/nvim-dap', -- for debugging (optional)
+    },
+  },
+  {
+    'nvim-neotest/neotest',
+    dependencies = {
+      'nvim-neotest/nvim-nio',
+      'nvim-lua/plenary.nvim',
+      'antoinemadec/FixCursorHold.nvim',
+      'nvim-treesitter/nvim-treesitter',
+    },
+    config = function()
+      require('neotest').setup {
+        adapters = {
+          require 'neotest-java' {},
+        },
+      }
     end,
   },
 }

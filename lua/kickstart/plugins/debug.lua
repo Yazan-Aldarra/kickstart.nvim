@@ -25,6 +25,8 @@ return {
 
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
+    -- java debug adapter
+    'microsoft/java-debug',
   },
   keys = {
     -- Basic debugging keymaps, feel free to change to your liking!
