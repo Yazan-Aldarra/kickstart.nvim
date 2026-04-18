@@ -1,0 +1,114 @@
+-- local M = {
+-- 	ns = vim.api.nvim_create_namespace('java-test-inline'),
+-- 	last_results = nil,
+-- 	last_buffer = nil,
+-- }
+--
+-- local M = {
+-- 	ns = vim.api.nvim_create_namespace('java-test-inline'),
+-- 	last_results = {},
+-- 	last_buffer = nil,
+-- 	sign_id = 1,
+-- }
+--
+-- local function define_signs()
+-- 	vim.cmd('sign define javaTestPass text=✓ linehl=DiffAdd texthl=DiagnosticHint')
+-- 	vim.cmd('sign define javaTestFail text=✗ linehl=DiffDelete texthl=DiagnosticError')
+-- 	vim.cmd('sign define javaTestSkip text=⊘ linehl=DiffChange texthl=DiagnosticWarn')
+-- end
+-- define_signs()
+--
+-- function M.clear(buf)
+-- 	buf = buf or vim.api.nvim_get_current_buf()
+-- 	vim.api.nvim_buf_clear_namespace(buf, M.ns, 0, -1)
+-- 	vim.cmd('sign unplace * buffer=' .. buf)
+-- 	M.sign_id = 1
+-- end
+--
+-- function M.next_id()
+-- 	local id = M.sign_id
+-- 	M.sign_id = M.sign_id + 1
+-- 	return id
+-- end
+--
+-- function M.show(results, buf)
+-- 	buf = buf or vim.api.nvim_get_current_buf()
+-- 	M.clear(buf)
+--
+-- 	if not results then results = {} end
+-- 	M.last_results = results
+-- 	M.last_buffer = buf
+--
+-- 	local function walk(node)
+-- 		if not node.is_suite and node.range then
+-- 			local l = node.range.start.line + 1
+-- 			local s = 'pass'
+--
+-- 			if node.result then
+-- 				if node.result.execution == 2 then
+-- 					s = node.result.status == 2 and 'fail' or node.result.status == 3 and 'skip' or 'pass'
+-- 				else
+-- 					s = 'fail'
+-- 				end
+-- 			end
+--
+-- 			local sign_name = s == 'pass' and 'javaTestPass' or s == 'fail' and 'javaTestFail' or 'javaTestSkip'
+-- 			local id = M.next_id()
+-- 			vim.cmd('sign place ' .. id .. ' line=' .. l .. ' name=' .. sign_name .. ' buffer=' .. buf)
+-- 		end
+--
+-- 		if node.children then
+-- 			for _, c in ipairs(node.children) do walk(c) end
+-- 		end
+-- 	end
+--
+-- 	for _, n in ipairs(results) do walk(n) end
+-- end
+--
+-- function M.hook(report, buf)
+-- 	print('hook called for buf:', buf)
+-- 	vim.defer_fn(function()
+-- 		print('deferred callback running')
+-- 		local r = report:get_results()
+-- 		print('results:', r, #r)
+-- 		if r and #r > 0 then
+-- 			print('calling show')
+-- 			M.show(r, buf)
+-- 		else
+-- 			print('no results')
+-- 		end
+-- 	end, 3000)
+-- end
+--
+-- vim.api.nvim_create_user_command('JavaTestShowLast', function()
+-- 	M.show(M.last_results, M.last_buffer)
+-- end, {})
+--
+-- vim.api.nvim_create_user_command('JavaTestPlacePass', function()
+-- 	local buf = vim.api.nvim_get_current_buf()
+-- 	local line = vim.fn.line('.')
+-- 	local id = M.next_id()
+-- 	vim.cmd('sign place ' .. id .. ' line=' .. line .. ' name=javaTestPass buffer=' .. buf)
+-- end, {})
+--
+-- vim.api.nvim_create_user_command('JavaTestPlaceFail', function()
+-- 	local buf = vim.api.nvim_get_current_buf()
+-- 	local line = vim.fn.line('.')
+-- 	local id = M.next_id()
+-- 	vim.cmd('sign place ' .. id .. ' line=' .. line .. ' name=javaTestFail buffer=' .. buf)
+-- end, {})
+--
+-- vim.api.nvim_create_user_command('JavaTestPlaceSkip', function()
+-- 	local buf = vim.api.nvim_get_current_buf()
+-- 	local line = vim.fn.line('.')
+-- 	local id = M.next_id()
+-- 	vim.cmd('sign place ' .. id .. ' line=' .. line .. ' name=javaTestSkip buffer=' .. buf)
+-- end, {})
+--
+-- vim.api.nvim_create_user_command('JavaTestClearSigns', function()
+-- 	local buf = vim.api.nvim_get_current_buf()
+-- 	M.clear(buf)
+-- end, {})
+--
+-- return M
+
