@@ -1,8 +1,10 @@
 return {
   {
     'nvim-java/nvim-java',
+    -- event = 'VimEnter',
+    lazny = false,
     config = function()
-      require('java').setup()
+      require('java').setup {}
 
       local inline = require 'custom.java-test-inline'
       local lsp_utils = require 'java-core.utils.lsp'
