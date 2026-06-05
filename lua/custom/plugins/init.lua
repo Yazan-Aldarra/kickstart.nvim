@@ -74,4 +74,27 @@ return {
   {
     'HiPhish/rainbow-delimiters.nvim',
   },
+  {
+    'nvim-flutter/flutter-tools.nvim',
+    lazy = false,
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'stevearc/dressing.nvim', -- optional for vim.ui.select
+    },
+    config = true,
+  },
+  -- image renderer for markdown preview in wezterm, using kitty's image protocol
+  -- {
+  --   '3rd/image.nvim',
+  --   dependencies = { 'nvim-lua/plenary.nvim' },
+  --   opts = {
+  --     backend = 'kitty', -- important for wezterm
+  --     integrations = {
+  --       markdown = {
+  --         enabled = true,
+  --         clear_in_insert_mode = false,
+  --       },
+  --     },
+  --   },
+  -- },
 }

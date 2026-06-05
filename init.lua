@@ -620,24 +620,25 @@ require('lazy').setup({
         yamlls = {},
         angularls = {}, -- Angular LSP
         -- copilot = {},
-        jdtls = {
-          cmd = {
-            vim.fn.stdpath 'data' .. '/mason/packages/jdtls/bin/jdtls',
-            '-data',
-            vim.fn.stdpath 'data' .. '/mason/packages/jdtls/workspace',
-          },
-          settings = {
-            java = {
-              home = os.getenv 'JAVA_HOME',
-              jdt = {
-                ls = {
-                  lombokSupport = true,
-                },
-              },
-            },
-          },
-        },
+        -- jdtls = {
+        --   cmd = {
+        --     vim.fn.stdpath 'data' .. '/mason/packages/jdtls/bin/jdtls',
+        --     '-data',
+        --     vim.fn.stdpath 'data' .. '/mason/packages/jdtls/workspace',
+        --   },
+        --   settings = {
+        --     java = {
+        --       home = os.getenv 'JAVA_HOME',
+        --       jdt = {
+        --         ls = {
+        --           lombokSupport = true,
+        --         },
+        --       },
+        --     },
+        --   },
+        -- },
         autohotkey_lsp = {},
+        omnisharp = {},
 
         stylua = {}, -- Used to format Lua code
 
