@@ -8,8 +8,12 @@ return {
   config = function()
     local lint = require 'lint'
     lint.linters_by_ft = {
-      markdown = { 'markdownlint' }, -- Make sure to install `markdownlint` via mason / npm
+      java = { 'checkstyle' },
+      markdown = { 'markdownlint' },
     }
+
+    local checkstyle = lint.linters.checkstyle
+    checkstyle.cmd = vim.fn.stdpath 'data' .. '/mason/bin/checkstyle.cmd'
 
     -- To allow other plugins to add linters to require('lint').linters_by_ft,
     -- instead set linters_by_ft like this:
