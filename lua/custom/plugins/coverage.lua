@@ -5,6 +5,8 @@ return {
       { '<leader>cc', '<cmd>JavaCoverage<cr>', desc = 'Toggle JaCoCo coverage' },
       { '<leader>cS', '<cmd>JaCoCoSummary<cr>', desc = 'JaCoCo coverage summary' },
       { '<leader>cD', '<cmd>JacocoDebug<cr>', desc = 'Debug coverage paths' },
+      { '<leader>cd', '<cmd>JavaCoverage disable<cr>', desc = 'Disable coverage signs' },
+      { '<leader>ce', '<cmd>JavaCoverage enable<cr>', desc = 'Re-enable coverage signs' },
       { ']cu', '<cmd>CoverageNextUncovered<cr>', desc = 'Next uncovered line' },
       { '[cu', '<cmd>CoveragePrevUncovered<cr>', desc = 'Prev uncovered line' },
     },
@@ -61,8 +63,33 @@ return {
         return nil
       end
 
-      -- JavaCoverage command
-      vim.api.nvim_create_user_command('JavaCoverage', function()
+      -- JavaCoverage command with enable/disable/toggle
+      vim.api.nvim_create_user_command('JavaCoverage', function(opts)
+        local args = opts.fargs
+        local cc = require('crazy-coverage')
+
+        if args and #args > 0 then
+          local subcmd = args[1]:lower()
+          if subcmd == 'disable' or subcmd == 'off' then
+            cc.disable()
+            vim.notify('Coverage disabled', vim.log.levels.INFO)
+            return
+          elseif subcmd == 'enable' or subcmd == 'on' then
+            local found = find_jacoco_xml()
+            if found then
+              cc.load_coverage(found)
+              vim.notify('Coverage enabled', vim.log.levels.INFO)
+            else
+              vim.notify('No jacoco.xml found. Run :JavaCoverage first to generate.', vim.log.levels.WARN)
+            end
+            return
+          elseif subcmd == 'toggle' then
+            cc.toggle()
+            return
+          end
+        end
+
+        -- Default: load/generate coverage
         local found = find_jacoco_xml()
         if not found then
           local project_root = vim.fn.getcwd()
@@ -72,7 +99,7 @@ return {
             on_exit = function(_, code)
               local report_path = find_jacoco_xml()
               if code == 0 and report_path then
-                vim.schedule(function() require('crazy-coverage').load_coverage(report_path) end)
+                vim.schedule(function() cc.load_coverage(report_path) end)
               else
                 vim.schedule(function() vim.notify('Failed to generate JaCoCo report (exit ' .. code .. ')', vim.log.levels.ERROR) end)
               end
@@ -80,6 +107,7 @@ return {
           })
           return
         end
+
         local data = require('custom.jacoco_parser').parse(found, vim.fn.getcwd())
         if data then
           local norm_fn = require('crazy-coverage.utils').normalize_path
@@ -96,7 +124,7 @@ return {
           vim.notify('Coverage: ' .. matched .. '/' .. vim.tbl_count(data) .. ' files rendered', vim.log.levels.INFO)
         end
         require('crazy-coverage').load_coverage(found)
-      end, { desc = 'Generate and show JaCoCo coverage' })
+      end, { desc = 'JaCoCo coverage: load/toggle/enable/disable', nargs = '*', complete = function() return { 'enable', 'disable', 'toggle' } end })
 
       -- Debug command
       vim.api.nvim_create_user_command('JacocoDebug', function()
