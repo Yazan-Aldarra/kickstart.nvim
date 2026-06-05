@@ -1,12 +1,12 @@
 return {
   {
     'mr-u0b0dy/crazy-coverage.nvim',
-    keys = {
-      { '<leader>cc', '<cmd>JavaCoverage<cr>', desc = 'Toggle JaCoCo coverage' },
-      { '<leader>cS', '<cmd>JaCoCoSummary<cr>', desc = 'JaCoCo coverage summary' },
-      { '<leader>cD', '<cmd>JacocoDebug<cr>', desc = 'Debug coverage paths' },
-      { '<leader>cd', '<cmd>JavaCoverage disable<cr>', desc = 'Disable coverage signs' },
-      { '<leader>ce', '<cmd>JavaCoverage enable<cr>', desc = 'Re-enable coverage signs' },
+keys = {
+      { '<leader>ljc', '<cmd>JavaCoverage<cr>', desc = 'Java: Load/generate coverage' },
+      { '<leader>ljs', '<cmd>JaCoCoSummary<cr>', desc = 'Java: Coverage summary tree' },
+      { '<leader>ljd', '<cmd>JavaCoverage disable<cr>', desc = 'Java: Disable coverage signs' },
+      { '<leader>lje', '<cmd>JavaCoverage enable<cr>', desc = 'Java: Enable coverage signs' },
+      { '<leader>ljD', '<cmd>JacacoDebug<cr>', desc = 'Java: Debug coverage paths' },
       { ']cu', '<cmd>CoverageNextUncovered<cr>', desc = 'Next uncovered line' },
       { '[cu', '<cmd>CoveragePrevUncovered<cr>', desc = 'Prev uncovered line' },
     },
