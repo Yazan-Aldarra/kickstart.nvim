@@ -1,36 +1,19 @@
 return {
   {
     'mr-u0b0dy/crazy-coverage.nvim',
-keys = {
+    keys = {
       { '<leader>ljc', '<cmd>JavaCoverage<cr>', desc = 'Java: Load/generate coverage' },
       { '<leader>ljs', '<cmd>JaCoCoSummary<cr>', desc = 'Java: Coverage summary tree' },
       { '<leader>ljd', '<cmd>JavaCoverage disable<cr>', desc = 'Java: Disable coverage signs' },
       { '<leader>lje', '<cmd>JavaCoverage enable<cr>', desc = 'Java: Enable coverage signs' },
       { '<leader>ljD', '<cmd>JacacoDebug<cr>', desc = 'Java: Debug coverage paths' },
-      { ']cu', '<cmd>CoverageNextUncovered<cr>', desc = 'Next uncovered line' },
-      { '[cu', '<cmd>CoveragePrevUncovered<cr>', desc = 'Prev uncovered line' },
+      { ']cu', function() require('custom.jacoco_signs').next_uncovered() end, desc = 'Next uncovered line' },
+      { '[cu', function() require('custom.jacoco_signs').prev_uncovered() end, desc = 'Prev uncovered line' },
     },
-    cmd = { 'CoverageToggle', 'CoverageSummary', 'CoverageLoad', 'CoverageNextUncovered', 'CoveragePrevUncovered', 'JavaCoverage', 'JaCoCoSummary', 'JacocoDebug' },
+    cmd = { 'JavaCoverage', 'JaCoCoSummary', 'JacacoDebug' },
     config = function()
-      vim.api.nvim_set_hl(0, 'JacocoGreen', { fg = '#50fa7b', bold = true })
-      vim.api.nvim_set_hl(0, 'JacocoYellow', { fg = '#f1fa8c', bold = true })
-      vim.api.nvim_set_hl(0, 'JacocoRed', { fg = '#ff5555', bold = true })
-      vim.api.nvim_set_hl(0, 'JacocoNA', { fg = '#6272a4' })
-      vim.api.nvim_set_hl(0, 'JacocoHeader', { fg = '#8be9fd', bold = true })
-      vim.api.nvim_set_hl(0, 'JacocoSep', { fg = '#44475a' })
-      vim.api.nvim_set_hl(0, 'JacocoDrill', { fg = '#bd93f9' })
-
       local jacoco_parser = require('custom.jacoco_parser')
-      require('crazy-coverage.parser').register_parser('jacoco', jacoco_parser)
-
-      local orig_detect = require('crazy-coverage.utils').detect_format
-      require('crazy-coverage.utils').detect_format = function(file_path)
-        local name = file_path:match("([^/\\]+)$")
-        if name and (name == "jacoco.xml" or name == "jacoco-it.xml" or name:match("^jacoco")) then
-          return "jacoco"
-        end
-        return orig_detect(file_path)
-      end
+      local jacoco_signs = require('custom.jacoco_signs')
 
       require('crazy-coverage').setup {
         coverage_dirs = {
@@ -39,7 +22,6 @@ keys = {
           'build/reports/jacoco', 'coverage',
         },
         coverage_patterns = {
-          java = { 'jacoco.xml', 'jacoco-it.xml', '*.lcov', '*.info', 'coverage.xml' },
           c = { '*.lcov', '*.info', 'coverage.json', 'coverage.xml', '*.profdata' },
           cpp = { '*.lcov', '*.info', 'coverage.json', 'coverage.xml', '*.profdata' },
           rust = { '*.lcov', '*.info', 'coverage.json', 'coverage.xml' },
@@ -63,33 +45,24 @@ keys = {
         return nil
       end
 
-      -- JavaCoverage command with enable/disable/toggle
       vim.api.nvim_create_user_command('JavaCoverage', function(opts)
         local args = opts.fargs
-        local cc = require('crazy-coverage')
+        local signs = jacoco_signs
 
         if args and #args > 0 then
           local subcmd = args[1]:lower()
           if subcmd == 'disable' or subcmd == 'off' then
-            cc.disable()
-            vim.notify('Coverage disabled', vim.log.levels.INFO)
+            signs.disable()
             return
           elseif subcmd == 'enable' or subcmd == 'on' then
-            local found = find_jacoco_xml()
-            if found then
-              cc.load_coverage(found)
-              vim.notify('Coverage enabled', vim.log.levels.INFO)
-            else
-              vim.notify('No jacoco.xml found. Run :JavaCoverage first to generate.', vim.log.levels.WARN)
-            end
+            signs.enable()
             return
           elseif subcmd == 'toggle' then
-            cc.toggle()
+            signs.toggle()
             return
           end
         end
 
-        -- Default: load/generate coverage
         local found = find_jacoco_xml()
         if not found then
           local project_root = vim.fn.getcwd()
@@ -99,7 +72,7 @@ keys = {
             on_exit = function(_, code)
               local report_path = find_jacoco_xml()
               if code == 0 and report_path then
-                vim.schedule(function() cc.load_coverage(report_path) end)
+                vim.schedule(function() signs.load(report_path, project_root) end)
               else
                 vim.schedule(function() vim.notify('Failed to generate JaCoCo report (exit ' .. code .. ')', vim.log.levels.ERROR) end)
               end
@@ -108,41 +81,24 @@ keys = {
           return
         end
 
-        local data = require('custom.jacoco_parser').parse(found, vim.fn.getcwd())
-        if data then
-          local norm_fn = require('crazy-coverage.utils').normalize_path
-          local matched = 0
-          for key in pairs(data) do
-            local nk = norm_fn(key)
-            for _, b in ipairs(vim.api.nvim_list_bufs()) do
-              if vim.api.nvim_buf_is_loaded(b) then
-                local bn = vim.api.nvim_buf_get_name(b)
-                if bn ~= '' and nk == norm_fn(bn) then matched = matched + 1; break end
-              end
-            end
-          end
-          vim.notify('Coverage: ' .. matched .. '/' .. vim.tbl_count(data) .. ' files rendered', vim.log.levels.INFO)
-        end
-        require('crazy-coverage').load_coverage(found)
+        signs.load(found, vim.fn.getcwd())
       end, { desc = 'JaCoCo coverage: load/toggle/enable/disable', nargs = '*', complete = function() return { 'enable', 'disable', 'toggle' } end })
 
-      -- Debug command
-      vim.api.nvim_create_user_command('JacocoDebug', function()
+      vim.api.nvim_create_user_command('JacacoDebug', function()
         local found = find_jacoco_xml()
         if not found then vim.notify('No jacoco.xml found', vim.log.levels.WARN); return end
         local data = require('custom.jacoco_parser').parse(found, vim.fn.getcwd())
         if not data then vim.notify('Failed to parse', vim.log.levels.ERROR); return end
-        local norm_fn = require('crazy-coverage.utils').normalize_path
         local keys = vim.tbl_keys(data)
         local bufs = {}
         for _, b in ipairs(vim.api.nvim_list_bufs()) do
           if vim.api.nvim_buf_is_loaded(b) then
             local name = vim.api.nvim_buf_get_name(b)
-            if name ~= '' then table.insert(bufs, { raw = name, norm = norm_fn(name) or name }) end
+            if name ~= '' then table.insert(bufs, { raw = name, norm = jacoco_signs.normalize_path(name) or name }) end
           end
         end
         local dl = { '=== Coverage Debug ===', '', 'File: ' .. found, 'Keys: ' .. #keys, 'Buffers: ' .. #bufs, '', 'First 5 coverage paths:' }
-        for i = 1, math.min(5, #keys) do dl[#dl+1] = '  ' .. (norm_fn(keys[i]) or keys[i]) end
+        for i = 1, math.min(5, #keys) do dl[#dl+1] = '  ' .. (jacoco_signs.normalize_path(keys[i]) or keys[i]) end
         dl[#dl+1] = ''; dl[#dl+1] = 'Buffer paths:'
         for _, b in ipairs(bufs) do dl[#dl+1] = '  ' .. b.norm end
         local buf = vim.api.nvim_create_buf(false, true)
@@ -154,7 +110,6 @@ keys = {
         vim.api.nvim_buf_set_keymap(buf, 'n', '<esc>', '<cmd>close<cr>', { noremap = true, silent = true })
       end, { desc = 'Debug JaCoCo path matching' })
 
-      -- JaCoCo summary tree
       local jacoco_view = { buf = nil, win = nil }
 
       local function pct(missed, covered)
@@ -196,7 +151,7 @@ keys = {
         local ln_total = c.line_missed + c.line_covered
         local mt_total = c.method_missed + c.method_covered
         local cl_total = c.class_missed + c.class_covered
-        local line = string.format(' %-44s │%7s │%5s │%7s │%5s │%7s │%7s │%7s │%7s │%7s │%7s │%7s │%7s',
+        local line = string.format(' %-44s |%7s |%5s |%7s |%5s |%7s |%7s |%7s |%7s |%7s |%7s |%7s |%7s',
           display,
           fmt_num(c.instr_missed), pct_str(ip),
           fmt_num(c.branch_missed), pct_str(bp),
@@ -207,9 +162,17 @@ keys = {
         return line, ip
       end
 
-      local HEADER = ' %-44s │%7s │%5s │%7s │%5s │%7s │%7s │%7s │%7s │%7s │%7s │%7s │%7s'
+      local HEADER = ' %-44s |%7s |%5s |%7s |%5s |%7s |%7s |%7s |%7s |%7s |%7s |%7s |%7s'
       local HEADER_TEXT = string.format(HEADER, 'Element', 'Missed', 'Cov%', 'Missed', 'Cov%', 'Missed', 'Cxty', 'Missed', 'Lines', 'Missed', 'Methods', 'Missed', 'Classes')
-      local SUBHEADER = string.format(' %-44s │ Instr  │      │ Bran  │      │  Cxty │  Cxty │ Lines │ Lines │  Mthd │  Mthd │ Class │ Class', '')
+      local SUBHEADER = string.format(' %-44s | Instr  |      | Bran  |      |  Cxty |  Cxty | Lines | Lines |  Mthd |  Mthd | Class | Class', '')
+
+      vim.api.nvim_set_hl(0, 'JacocoGreen', { fg = '#50fa7b', bold = true })
+      vim.api.nvim_set_hl(0, 'JacocoYellow', { fg = '#f1fa8c', bold = true })
+      vim.api.nvim_set_hl(0, 'JacocoRed', { fg = '#ff5555', bold = true })
+      vim.api.nvim_set_hl(0, 'JacocoNA', { fg = '#6272a4' })
+      vim.api.nvim_set_hl(0, 'JacocoHeader', { fg = '#8be9fd', bold = true })
+      vim.api.nvim_set_hl(0, 'JacocoSep', { fg = '#44475a' })
+      vim.api.nvim_set_hl(0, 'JacocoDrill', { fg = '#bd93f9' })
 
       local show_packages, show_classes, show_methods
 
@@ -269,11 +232,10 @@ keys = {
         local row_str, total_ip = render_row('TOTAL', t, false)
         table.insert(lines, HEADER_TEXT)
         table.insert(lines, SUBHEADER)
-        local sep = string.rep('─', #row_str)
+        local sep = string.rep('-', #row_str)
         table.insert(lines, sep)
         table.insert(highlights, { row = #lines, group = hl_for_pct(total_ip), col_start = 0, col_end = -1 })
         lines[#lines] = ' ' .. row_str
-        local total_row = #lines
         table.insert(lines, sep)
 
         local data_start = #lines + 1
@@ -297,7 +259,7 @@ keys = {
           vim.api.nvim_buf_set_keymap(buf, 'n', '<esc>', '<cmd>close<cr>', { noremap = true, silent = true })
         end
 
-        show_view(lines, highlights, 'JaCoCo: Packages ─ Enter=drill, q/Esc=close', keymaps)
+        show_view(lines, highlights, 'JaCoCo: Packages - Enter=drill, q/Esc=close', keymaps)
       end
 
       show_classes = function(pkg, tree)
@@ -329,7 +291,7 @@ keys = {
                   vim.cmd('close')
                   vim.cmd('edit ' .. vim.fn.fnameescape(cls.file_path))
                   local found = find_jacoco_xml()
-                  if found then require('crazy-coverage').load_coverage(found) end
+                  if found then jacoco_signs.load(found) end
                   return
                 end
               end
@@ -343,7 +305,7 @@ keys = {
           vim.api.nvim_buf_set_keymap(buf, 'n', '<esc>', '<cmd>close<cr>', { noremap = true, silent = true })
         end
 
-        show_view(lines, highlights, 'JaCoCo: ' .. pkg.name .. ' ─ Enter=open, H/BS=back', keymaps)
+        show_view(lines, highlights, 'JaCoCo: ' .. pkg.name .. ' - Enter=open, H/BS=back', keymaps)
       end
 
       show_methods = function(cls, pkg, tree)
@@ -368,7 +330,7 @@ keys = {
           vim.api.nvim_buf_set_keymap(buf, 'n', '<esc>', '<cmd>close<cr>', { noremap = true, silent = true })
         end
 
-        show_view(lines, highlights, 'JaCoCo: ' .. cls.name .. ' ─ H/BS=back', keymaps)
+        show_view(lines, highlights, 'JaCoCo: ' .. cls.name .. ' - H/BS=back', keymaps)
       end
 
       vim.api.nvim_create_user_command('JaCoCoSummary', function()

@@ -29,6 +29,7 @@ return {
 
       conform.formatters['google-java-format'] = {
         command = vim.fn.stdpath 'data' .. '/mason/bin/google-java-format.cmd',
+        args = { '--aosp', '-' },
       }
     end,
   },
