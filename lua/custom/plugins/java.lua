@@ -65,6 +65,23 @@ return {
           .run()
       end, {})
 
+      vim.lsp.config('jdtls', {
+        settings = {
+          java = {
+            completion = {
+              imports = {
+                enabled = true,
+              },
+            },
+          },
+        },
+        capabilities = {
+          textDocument = {
+            willSaveWaitUntil = false,
+          },
+        },
+      })
+
       vim.lsp.enable 'jdtls'
       vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
         pattern = '*.class',

@@ -18,10 +18,16 @@ return {
         java = { 'google-java-format' },
         lua = { 'stylua' },
       },
-      format_on_save = {
-        timeout_ms = 3000,
-        lsp_fallback = true,
-      },
+      format_on_save = function(bufnr)
+        local exclude_filetypes = { java = true }
+        if exclude_filetypes[vim.bo[bufnr].filetype] then
+          return nil
+        end
+        return {
+          timeout_ms = 3000,
+          lsp_fallback = true,
+        }
+      end,
     },
     config = function(_, opts)
       local conform = require 'conform'

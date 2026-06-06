@@ -625,6 +625,9 @@ require('lazy').setup({
         ts_ls = {}, -- TypeScript/JavaScript LSP
         cssls = {},
         html = {},
+        emmet_language_server = {
+          filetypes = { 'html', 'css', 'scss', 'less', 'javascript', 'typescript', 'typescriptreact', 'javascriptreact', 'svelte', 'vue', 'heex' },
+        },
         bashls = {},
         dockerls = {},
         yamlls = {},
@@ -701,47 +704,6 @@ require('lazy').setup({
         vim.lsp.enable(name)
       end
     end,
-  },
-
-  { -- Autoformat
-    'stevearc/conform.nvim',
-    event = { 'BufWritePre' },
-    cmd = { 'ConformInfo' },
-    keys = {
-      {
-        '<leader>f',
-        function() require('conform').format { async = true, lsp_format = 'fallback' } end,
-        mode = '',
-        desc = '[F]ormat buffer',
-      },
-    },
-    ---@module 'conform'
-    ---@type conform.setupOpts
-    opts = {
-      notify_on_error = false,
-      format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          return nil
-        else
-          return {
-            timeout_ms = 500,
-            lsp_format = 'fallback',
-          }
-        end
-      end,
-      formatters_by_ft = {
-        lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
-      },
-    },
   },
 
   { -- Autocompletion
@@ -1037,8 +999,13 @@ require 'custom.keymaps'
 require 'custom.lsp'
 
 vim.opt.cmdheight = 0 -- hide command line unless needed
-vim.o.autowrite = true
-vim.o.autowriteall = true
+vim.o.autowrite = false
+vim.o.autowriteall = false
+
+vim.o.tabstop = 4
+vim.o.shiftwidth = 4
+vim.o.softtabstop = 4
+vim.o.expandtab = true
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

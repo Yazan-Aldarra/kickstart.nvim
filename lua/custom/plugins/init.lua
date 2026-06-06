@@ -35,6 +35,14 @@ return {
   { 'akinsho/git-conflict.nvim', version = '*', config = true },
 
   {
+    'olrtg/nvim-emmet',
+    config = function()
+      local emmet = require 'nvim-emmet'
+      vim.keymap.set({ 'n', 'v' }, '<leader>xe', emmet.wrap_with_abbreviation, { desc = 'Emmet: wrap with tag' })
+    end,
+  },
+
+  {
     'folke/trouble.nvim',
     opts = {}, -- for default options, refer to the configuration section for custom setup.
     cmd = 'Trouble',
