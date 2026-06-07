@@ -113,6 +113,7 @@ return {
     'github/copilot.vim',
     lazy = false, -- Load immediately so it's ready when you start coding
     config = function()
+      vim.g.copilot_enabled = 0
       -- Optional: Map Tab to accept suggestions more comfortably
       vim.keymap.set('i', '<Tab>', 'copilot#Accept()', { expr = true, replace_keycodes = false })
       vim.keymap.set('i', '<C-]>', '<Plug>(copilot-dismiss)') -- Use Ctrl+] to dismiss a suggestion
